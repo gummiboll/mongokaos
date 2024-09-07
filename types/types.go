@@ -1,6 +1,8 @@
 package types
 
 import (
+	"os"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -11,6 +13,15 @@ type Config struct {
 	APIKey     string
 	DBUrl      string
 	Debug      bool
+}
+
+func NewConfig() *Config {
+	return &Config{
+		ListenPort: os.Getenv("LISTEN_PORT"),
+		APIKey:     os.Getenv("API_KEY"),
+		DBUrl:      os.Getenv("DB_URL"),
+		Debug:      os.Getenv("DEBUG") == "true",
+	}
 }
 
 type AppState struct {

@@ -3,11 +3,9 @@ package state
 import (
 	"context"
 	"log"
-	"os"
 	"sync"
 
 	"github.com/gummiboll/mongokaos/types"
-	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -32,16 +30,7 @@ func initMongo(DBUrl string) (*mongo.Client, error) {
 
 func GetAppState() *types.AppState {
 	once.Do(func() {
-		err := godotenv.Load()
-		if err != nil {
-			log.Fatal("Error loading .env file")
-		}
-		cfg := &types.Config{
-			ListenPort: os.Getenv("LISTEN_PORT"),
-			APIKey:     os.Getenv("API_KEY"),
-			DBUrl:      os.Getenv("DB_URL"),
-			Debug:      os.Getenv("DEBUG") == "true",
-		}
+		cfg := types.NewConfig()
 
 		mongoClient, err := initMongo(cfg.DBUrl)
 		if err != nil {
