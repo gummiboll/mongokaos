@@ -21,7 +21,7 @@ func ApiHandler(w http.ResponseWriter, r *http.Request, appState *types.AppState
 	action := r.PathValue("action")
 
 	log.Printf(`%s %s`, r.Method, r.URL)
-	if Authenticate(r, appState.Config.APIKey) == false {
+	if r.Header.Get("api-key") != appState.Config.APIKey {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
@@ -52,14 +52,14 @@ func ApiHandler(w http.ResponseWriter, r *http.Request, appState *types.AppState
 		log.Println("Error: ", err)
 	}
 
+	var reply interface{}
 	switch result.(type) {
 	case *mongo.SingleResult:
 		var resultData bson.M
 		var res types.SingleResult
 		_ = result.(*mongo.SingleResult).Decode(&resultData)
 		res.Document = resultData
-		ReturnResult(w, res, state.GetAppState().Config.Debug)
-		return
+		reply = res
 
 	case *mongo.Cursor:
 		var resultData []bson.M
@@ -74,11 +74,25 @@ func ApiHandler(w http.ResponseWriter, r *http.Request, appState *types.AppState
 		}
 
 		res.Documents = resultData
-		ReturnResult(w, res, state.GetAppState().Config.Debug)
-		return
+		reply = res
 
 	default:
-		ReturnResult(w, result, state.GetAppState().Config.Debug)
+		reply = result
+	}
+
+	ejson, err := bson.MarshalExtJSON(reply, false, false)
+	if err != nil {
+		log.Println("Error marshaling result: ", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	if state.GetAppState().Config.Debug {
+		var prettyJSON bytes.Buffer
+		_ = json.Indent(&prettyJSON, ejson, "", "  ")
+		log.Printf("Response:\n%s", prettyJSON.String())
+	}
+
+	w.Header().Set("Content-Type", "application/ejson")
+	w.Write(ejson)
 }
