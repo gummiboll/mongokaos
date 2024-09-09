@@ -5,13 +5,12 @@ import (
 	"log"
 	"sync"
 
-	"github.com/gummiboll/mongokaos/types"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var (
-	appState *types.AppState
+	appState *AppState
 	once     sync.Once
 )
 
@@ -28,9 +27,9 @@ func initMongo(DBUrl string) (*mongo.Client, error) {
 	return client, nil
 }
 
-func GetAppState() *types.AppState {
+func GetAppState() *AppState {
 	once.Do(func() {
-		cfg := types.NewConfig()
+		cfg := NewConfig()
 
 		mongoClient, err := initMongo(cfg.DBUrl)
 		if err != nil {
@@ -38,7 +37,7 @@ func GetAppState() *types.AppState {
 		}
 
 		log.Printf("Connected to MongoDB at %s\n", cfg.DBUrl)
-		appState = &types.AppState{
+		appState = &AppState{
 			Config: cfg,
 			Mongo:  mongoClient,
 		}

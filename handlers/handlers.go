@@ -15,16 +15,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func ApiHandler(w http.ResponseWriter, r *http.Request, appState *types.AppState) {
+func ApiHandler(w http.ResponseWriter, r *http.Request) {
 	var reqData types.RequestData
 	ctx := context.Background()
 	action := r.PathValue("action")
-
-	log.Printf(`%s %s`, r.Method, r.URL)
-	if r.Header.Get("api-key") != appState.Config.APIKey {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
 
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -45,7 +39,7 @@ func ApiHandler(w http.ResponseWriter, r *http.Request, appState *types.AppState
 		return
 	}
 
-	collection := appState.Mongo.Database(reqData.Database).Collection(reqData.Collection)
+	collection := state.GetAppState().Mongo.Database(reqData.Database).Collection(reqData.Collection)
 
 	result, err := mongodb.ExecuteAction(action, ctx, collection, reqData)
 	if err != nil {
@@ -56,14 +50,14 @@ func ApiHandler(w http.ResponseWriter, r *http.Request, appState *types.AppState
 	switch result.(type) {
 	case *mongo.SingleResult:
 		var resultData bson.M
-		var res types.SingleResult
+		var res SingleResult
 		_ = result.(*mongo.SingleResult).Decode(&resultData)
 		res.Document = resultData
 		reply = res
 
 	case *mongo.Cursor:
 		var resultData []bson.M
-		var res types.MultipleResults
+		var res MultipleResults
 
 		defer result.(*mongo.Cursor).Close(ctx)
 		if err := result.(*mongo.Cursor).All(ctx, &resultData); err != nil {
