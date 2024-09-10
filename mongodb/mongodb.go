@@ -9,6 +9,20 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+func setFindOpts(reqData types.RequestData) *options.FindOptions {
+	opts := options.Find()
+	if reqData.Sort != nil {
+		opts.SetSort(reqData.Sort)
+	}
+	if reqData.Limit != 0 {
+		opts.SetLimit(reqData.Limit)
+	}
+	if reqData.Skip != 0 {
+		opts.SetSkip(reqData.Skip)
+	}
+	return opts
+}
+
 // Define a type for MongoDB operations with flexible parameters
 type MongoOperation func(ctx context.Context, collection *mongo.Collection, reqData types.RequestData) (interface{}, error)
 
@@ -18,7 +32,7 @@ func findOne(ctx context.Context, collection *mongo.Collection, reqData types.Re
 }
 
 func findMany(ctx context.Context, collection *mongo.Collection, reqData types.RequestData) (interface{}, error) {
-	return collection.Find(ctx, reqData.Filter, options.Find())
+	return collection.Find(ctx, reqData.Filter, setFindOpts(reqData), nil)
 }
 
 func aggregate(ctx context.Context, collection *mongo.Collection, reqData types.RequestData) (interface{}, error) {
