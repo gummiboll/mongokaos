@@ -14,7 +14,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		recorder := &StatusRecorder{ResponseWriter: w, StatusCode: http.StatusOK}
 
 		next.ServeHTTP(recorder, r)
-		log.Printf(`%s %s %s %s [%d]`, r.Method, r.URL, r.Method, time.Since(start).Truncate(time.Millisecond), recorder.StatusCode)
+		log.Printf(`%s %s %s [%d]`, r.Method, r.URL, time.Since(start).Truncate(time.Millisecond), recorder.StatusCode)
 	})
 }
 
