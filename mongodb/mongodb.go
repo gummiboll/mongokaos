@@ -20,6 +20,9 @@ func setFindOpts(reqData types.RequestData) *options.FindOptions {
 	if reqData.Skip != 0 {
 		opts.SetSkip(reqData.Skip)
 	}
+  if (reqData.Projection != nil) {
+    opts.SetProjection(reqData.Projection)
+  }
 	return opts
 }
 

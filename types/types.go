@@ -12,6 +12,7 @@ type RequestData struct {
 	Sort       bson.D   `json:"sort"`
 	Limit      int64    `json:"limit"`
 	Skip       int64    `json:"skip"`
+  Projection bson.D   `json:"projection"`
 	Pipeline   []bson.D `json:"pipeline"`
 	Document   bson.D   `json:"document"`
 	Update     bson.D   `json:"update"`
