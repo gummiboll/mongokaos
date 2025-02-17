@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/gummiboll/mongokaos/types"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -26,12 +27,28 @@ func setFindOpts(reqData types.RequestData) *options.FindOptions {
 	return opts
 }
 
+func setFindOneOpts(reqData types.RequestData) *options.FindOneOptions {
+	opts := options.FindOne()
+	if reqData.Sort != nil {
+		opts.SetSort(reqData.Sort)
+	}
+	if reqData.Projection != nil {
+		opts.SetProjection(reqData.Projection)
+	}
+	return opts
+}
+
 // Define a type for MongoDB operations with flexible parameters
 type MongoOperation func(ctx context.Context, collection *mongo.Collection, reqData types.RequestData) (interface{}, error)
 
 // Function definitions
 func findOne(ctx context.Context, collection *mongo.Collection, reqData types.RequestData) (interface{}, error) {
-	return collection.FindOne(ctx, reqData.Filter), nil
+	var result bson.M
+	err := collection.FindOne(ctx, reqData.Filter, setFindOneOpts(reqData)).Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func findMany(ctx context.Context, collection *mongo.Collection, reqData types.RequestData) (interface{}, error) {
