@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/gummiboll/mongokaos/types"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -43,12 +42,7 @@ type MongoOperation func(ctx context.Context, collection *mongo.Collection, reqD
 
 // Function definitions
 func findOne(ctx context.Context, collection *mongo.Collection, reqData types.RequestData) (interface{}, error) {
-	var result bson.M
-	err := collection.FindOne(ctx, reqData.Filter, setFindOneOpts(reqData)).Decode(&result)
-	if err != nil {
-		return nil, err
-	}
-	return result, nil
+  return collection.FindOne(ctx, reqData.Filter, setFindOneOpts(reqData)), nil
 }
 
 func findMany(ctx context.Context, collection *mongo.Collection, reqData types.RequestData) (interface{}, error) {
